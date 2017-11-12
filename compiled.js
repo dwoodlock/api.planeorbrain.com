@@ -63,23 +63,26 @@ const uploadpicOptions = function(body) {
         })(["classes/",month,"/studentPics/studentPic",pcNumber].join(''),new Buffer(body.data_uri.replace(regex,""),"base64"));
     })((body).month,(body).pcNumber,(body).filetype,new RegExp("^data:image\\/\\w+;base64,"));
 };
+const promisifiedJoRotate = function(fileBuffer,options) {
+    return new Promise(function(resolve) {
+        return jo.rotate(fileBuffer,{},function(error,buffer) {
+            return (function(bufferToPut) {
+                return resolve(bufferToPut);
+            })((error ?
+                fileBuffer :
+                buffer));
+        });
+    });
+};
 const uploadpicHandler_ = function(body) {
     return new Promise(function(resolve,reject) {
-        return (function(options) {
-            return jo.rotate((options).Body,{},function(error,buffer,orientation) {
-                return (function(bufferToPut) {
-                    return (function(updatedOptions) {
-                        return ((promisifiedPutObject_(options)).then(function(data) {
-                            return resolve(data);
-                        })).catch(function(err) {
-                            return reject(err);
-                        });
-                    })(Object.assign,{},options,{Body: bufferToPut});
-                })((error ?
-                    (options).Body :
-                    buffer));
+        return (promisifiedJoRotate((uploadpicOptions(body)).Body,{})).then(function(bufferToPut) {
+            return ((promisifiedPutObject_(Object.assign({},uploadpicOptions(body),{Body: bufferToPut}))).then(function(data) {
+                return resolve(data);
+            })).catch(function(err) {
+                return reject(err);
             });
-        })(uploadpicOptions(body));
+        });
     });
 };
 const main_ = function() {

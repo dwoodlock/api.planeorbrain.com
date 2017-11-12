@@ -92,22 +92,28 @@
 				CacheControl: "no-cache",
 				Body: originalBuffer})))
 
+; input fileBuffer to rotate, optionx
+; output new fileBuffer delivered through a promise.
+(defn promisifiedJoRotate (fileBuffer options)
+	(new Promise (fn (resolve)
+		(jo.rotate 
+			fileBuffer
+			{}
+				(fn (error buffer)
+					(let (bufferToPut) ((if error fileBuffer buffer))
+						(resolve bufferToPut)))))))
+
 ;takes a body
 ;return a promise fulfilled by an plain js object to send back to the client.
 (defn uploadpicHandler_ (body) 
 	(new Promise (fn (resolve reject)
-		(let (options) ((uploadpicOptions body))
-			(jo.rotate 
-				(.Body options)
-				{}
-				(fn 
-					(error buffer orientation)
-					(let (bufferToPut) ((if error (.Body options) buffer))
-						(let (updatedOptions) (Object.assign {} options {Body: bufferToPut})
-							(-> 
-								(promisifiedPutObject_ options)
-								(.then (fn (data) (resolve data)))
-								(.catch (fn (err) (reject err))))))))))))
+		(-> 
+			(promisifiedJoRotate (.Body (uploadpicOptions body)) {})
+			(.then (fn (bufferToPut)
+				(-> 
+					(promisifiedPutObject_ (Object.assign {} (uploadpicOptions body) {Body: bufferToPut}))
+					(.then (fn (data) (resolve data)))
+					(.catch (fn (err) (reject err))))))))))
 
 (defn main_ () 
 	(do 
