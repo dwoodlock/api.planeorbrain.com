@@ -1,14 +1,16 @@
 ; clojurescript things.
 (macro def (symbol value)
-	(var ~symbol ~value))
+	(const ~symbol ~value))
 (macro let (names vals rest...)
   ((function ~names ~rest...) ~@vals))
 (macro or (rest...)
 	(|| ~rest...))
 (macro defn (symbol value value2)
-	(var ~symbol (function(~value) ~value2)))
+	(const ~symbol (function(~value) ~value2)))
 (macro fn (args body)
 	(function ~args ~body))
+(macro -> (rest...)
+	(chain ~rest...))
 
 ; imports
 (def express (require "express"))
@@ -49,26 +51,31 @@
 				Key: key,
 				Body: code})))
 
-(defn createPutObjectCallback (res)
-	(fn (err data)
-		(do 
-			(console.log err data)
-			(if err 
-				(-> (res.status 500) (.send {status: 500, message: err, type:'internal'}))
-				(-> (res.status 200) (.send {status:200, data}))))))
+(defn promisifiedPutObject_ (options)
+	(new Promise (fn 
+		(resolve reject)
+		(s3ToStudentCode.putObject
+			options
+			(fn (err data)
+				(do
+					(console.log err data)
+					(if err 
+						(reject err)
+						(resolve data))))))))
 
-(app.post 
-	"/savecode" 
-	(fn 
-		(req res) 
-		(let 
-			(options callback) 
-			((saveCodeOptions (.body req)) (createPutObjectCallback res)) 
-			(do 
-				(console.log (.body req))
-				(s3ToStudentCode.putObject 
-					options
-					callback)))))
+;takes a body
+;return a promise fulfilled by an plain js object to send back to the client.
+(defn saveCodeHandler_ (body) 
+		(promisifiedPutObject_ (saveCodeOptions body)))
+
+(defn createAppHandler (handlerFn)
+	(fn (req res)
+		(-> 
+			(handlerFn (.body req))
+			(.then (fn (data) (-> (res.status 200) (.send {status:200, data}))))
+			(.catch (fn (err) (-> (res.status 500) (.send {status: 500, message: err, type:'internal'})))))))
+
+
 
 ;pure function to deterine uploadpic options
 (defn uploadpicOptions (body)
@@ -85,24 +92,37 @@
 				CacheControl: "no-cache",
 				Body: originalBuffer})))
 
-(app.post
-	"/uploadpic"
-	(-> (multer) (.single 'file'))
-	(fn 
-		(req res) 
-		(do 
-			(console.log "got a post at /uploadpic")
-			(let (options) ((uploadpicOptions (.body req)))
-				(jo.rotate 
-					(.Body options)
-					{}
-					(fn 
-						(error buffer orientation)
-						(let (bufferToPut) ((if error (.Body options) buffer))
-							(let (updatedOptions) (Object.assign {} options {Body: bufferToPut})
-								(s3ToStudentCode.putObject 
-									options 
-									(createPutObjectCallback res))))))))))
+;takes a body
+;return a promise fulfilled by an plain js object to send back to the client.
+(defn uploadpicHandler_ (body) 
+	(new Promise (fn (resolve reject)
+		(let (options) ((uploadpicOptions body))
+			(jo.rotate 
+				(.Body options)
+				{}
+				(fn 
+					(error buffer orientation)
+					(let (bufferToPut) ((if error (.Body options) buffer))
+						(let (updatedOptions) (Object.assign {} options {Body: bufferToPut})
+							(-> 
+								(promisifiedPutObject_ options)
+								(.then (fn (data) (resolve data)))
+								(.catch (fn (err) (reject err))))))))))))
 
-(app.listen port (fn () (console.log "I am listening on port " port "!")))
+(defn main_ () 
+	(do 
+		(app.post 
+			"/savecode" 
+			(createAppHandler saveCodeHandler_))
+		(app.post
+			"/uploadpic"
+			(-> (multer) (.single 'file'))
+			(createAppHandler uploadpicHandler_))
+		(app.listen port (fn () (console.log "I am listening on port " port "!")))))
+
+(main_)
+
+
+
+
 
