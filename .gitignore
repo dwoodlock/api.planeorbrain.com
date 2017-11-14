@@ -1,6 +1,8 @@
 # Don stuff
 *.zip
 .DS_Store
+AWSCredentials.js
+
 
 # Logs
 logs
