@@ -2,7 +2,8 @@
 *.zip
 .DS_Store
 AWSCredentials.js
-
+out
+src/server/AWSCredentials.cljs
 
 # Logs
 logs

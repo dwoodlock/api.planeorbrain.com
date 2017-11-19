@@ -1,0 +1,5 @@
+//dev notes
+
+when you start the repl
+(in-ns 'server.core)
+(load-file "src/server/core.cljs")

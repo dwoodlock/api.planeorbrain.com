@@ -25,10 +25,11 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "repl": "npx lispy",
-    "build": "npx elfenben src/app.ls compiled.js && npm run lint",
-    "start": "node compiled.js",
-    "lint": "npx eslint compiled.js"
+    "repl": "rlwrap java -cp cljs.jar:src clojure.main scripts/node_repl.clj",
+    "build": "java -cp cljs.jar:src clojure.main scripts/node_prod_build.clj",
+    "dev": "java -cp cljs.jar:src clojure.main scripts/node_dev_build.clj && node main.js",
+    "debug": "java -cp cljs.jar:src clojure.main scripts/node_dev_build.clj && node --inspect --debug-brk main.js",
+    "start": "node main.js"
   },
   "author": "",
   "license": "ISC"
