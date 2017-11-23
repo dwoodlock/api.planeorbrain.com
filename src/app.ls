@@ -49,14 +49,14 @@
 			accessKeyId,
 			secretAccessKey,
 			region: "us-east-1"})))
-(def studentCodeBucket "www.gegirlstech.com")
+(def studentCodeBucket "www.planeorbrain.com")
 
 ; getting the express app setup.
 (def app (express))
 (def port (or process.env.PORT 9000))
 (if (= port 9000) 
 	(app.use (cors))
-	(app.use (cors {origin: "http://www.gegirlstech.com"})))
+	(app.use (cors {origin: "http://www.planeorbrain.com"})))
 (app.use (bodyParser.json {limit: '10mb'}))
 (app.use (bodyParser.urlencoded { extended: false, limit: '10mb' }))
 
