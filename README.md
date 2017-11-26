@@ -1,10 +1,10 @@
-# Project Title
+# Plane or Brain backend APIs
 
-This is the nodejs backend for the Plane or Brain game that I use to teach mobile app development to middle school aged kids
+This is the nodejs backend for the Plane or Brain game that I use to teach mobile app development to middle school aged kids.  This handles 2 POST transactions to file the student's code and upload their picture for the app.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.  You will need to change the AWS bits - credentials and bucket.  See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
@@ -43,7 +43,7 @@ The backend accepts two post transactions.  I haven't posted the front-end code 
 
 ## Deployment
 
-For AWS, assuming you have done a production build, just upload main.js and package.json.  There is an npm start
+For AWS, assuming you have done a production build, just upload main.js (once built) and package.json.  There is an npm start
 script that AWS will find and use to start it up.
 
 ## Built With

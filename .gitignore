@@ -4,6 +4,7 @@
 AWSCredentials.js
 out
 src/server/AWSCredentials.cljs
+main.js
 
 # Logs
 logs
